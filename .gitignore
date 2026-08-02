@@ -45,3 +45,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated at build (export-static-sitemaps.ts)
+/public/sitemaps/*.xml

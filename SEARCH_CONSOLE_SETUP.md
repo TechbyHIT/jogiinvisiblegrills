@@ -40,6 +40,12 @@ In Search Console → **Sitemaps**: remove `sitemap.xml`, wait a few minutes, su
 
 `https://www.jogiinvisiblegrills.in/sitemap.xml`
 
+**Important:** the property must be **`https://www.jogiinvisiblegrills.in/`** (URL prefix). A domain-only property or non-www prefix can show “Couldn’t fetch” even when curl works.
+
+Use **URL inspection** on a child sitemap, e.g. `https://www.jogiinvisiblegrills.in/sitemaps/core.xml` → **Test live URL** → should be crawlable.
+
+Production builds run `npm run sitemaps:export` (via `build:standalone`) so nginx can serve `/sitemaps/*.xml` as static files.
+
 Optional ping (after HTTPS is valid):
 
 ```bash

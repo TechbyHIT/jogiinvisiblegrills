@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev -p 3004",
     "build": "next build",
-    "build:standalone": "next build && node scripts/prepare-standalone.cjs",
+    "build:standalone": "next build && tsx scripts/export-static-sitemaps.ts && node scripts/prepare-standalone.cjs",
+    "sitemaps:export": "tsx scripts/export-static-sitemaps.ts",
     "start": "next start -p 3004",
     "start:standalone": "node .next/standalone/server.js",
     "lint": "eslint .",
