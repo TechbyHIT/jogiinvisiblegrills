@@ -1,4 +1,5 @@
 import { getDefaultOpenGraphImage } from "@/config/finalized-images";
+import { resolveCanonicalSiteUrl } from "@/lib/site-url";
 
 const DEFAULT_OG_IMAGE = getDefaultOpenGraphImage();
 
@@ -69,7 +70,7 @@ export const BUSINESS_CONFIG = {
   ownerName: "Raju",
   description:
     "Jogi Invisible Grills (Jogiinvisiblegrills) provides professional invisible grills, safety nets, pigeon nets, balcony nets, mosquito nets, cloth hangers and sports nets across Bengaluru, Mysuru and Karnataka. Free site inspection, premium materials and clean installation for homes and apartments.",
-  websiteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.jogiinvisiblegrills.in",
+  websiteUrl: resolveCanonicalSiteUrl(process.env.NEXT_PUBLIC_SITE_URL),
   googleMapsUrl: process.env.NEXT_PUBLIC_GOOGLE_MAPS_URL ?? "",
 
   phone: {

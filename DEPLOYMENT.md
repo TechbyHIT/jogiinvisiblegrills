@@ -30,7 +30,7 @@ Compatible with Vercel, Netlify, or any Node.js host supporting Next.js 16.
 
 ### PM2 + nginx (VPS, no Docker)
 
-For **jogendhrainvisiblegrills.in** and similar VPS setups, see **[DEPLOYMENT-PM2.md](./DEPLOYMENT-PM2.md)** — standalone build, PM2 on port 3000+, nginx reverse proxy, and sitemap verification.
+For **jogiinvisiblegrills.in** and similar VPS setups, see **[DEPLOYMENT-PM2.md](./DEPLOYMENT-PM2.md)** — standalone build, PM2 on port 3000+, nginx reverse proxy, HTTPS (apex + www), and sitemap verification.
 
 ### Vercel (recommended)
 

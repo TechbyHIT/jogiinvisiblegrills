@@ -1,11 +1,11 @@
-# PM2 + nginx (no Docker) — e.g. jogendhrainvisiblegrills.in
+# PM2 + nginx (no Docker) — jogiinvisiblegrills.in
 
 ## Server requirements
 
 - Ubuntu 22.04+ (or similar)
 - Node.js **20 LTS**
 - PM2: `npm i -g pm2`
-- nginx
+- nginx + certbot
 
 ## 1. Clone and env
 
@@ -17,6 +17,13 @@ npm run env:setup
 ```
 
 This copies `.env.example` → `.env.local` once and auto-generates `ADMIN_PASSWORD` and `REVALIDATE_SECRET`. **No manual typing** — site URL, phone, WhatsApp, and email are already set in `.env.example`.
+
+Ensure production uses the **www** canonical URL:
+
+```bash
+grep NEXT_PUBLIC_SITE_URL .env.local
+# NEXT_PUBLIC_SITE_URL=https://www.jogiinvisiblegrills.in
+```
 
 To view admin password after setup:
 
@@ -66,32 +73,36 @@ npm run build:standalone
 pm2 restart jogendhra-invisible-grills
 ```
 
-## 4. nginx (reverse proxy)
+## 4. HTTPS + nginx
 
-```nginx
-server {
-    listen 80;
-    server_name jogendhrainvisiblegrills.in www.jogendhrainvisiblegrills.in;
-    return 301 https://www.jogendhrainvisiblegrills.in$request_uri;
-}
+**Symptom:** `NET::ERR_CERT_COMMON_NAME_INVALID` on `https://jogiinvisiblegrills.in` (no www) — the certificate must list **both** `jogiinvisiblegrills.in` and `www.jogiinvisiblegrills.in`, and nginx must redirect apex → www.
 
-server {
-    listen 443 ssl http2;
-    server_name www.jogendhrainvisiblegrills.in;
+Copy the site config from the repo:
 
-    # ssl_certificate /etc/letsencrypt/live/.../fullchain.pem;
-    # ssl_certificate_key /etc/letsencrypt/live/.../privkey.pem;
-
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
+```bash
+sudo cp deploy/nginx-jogiinvisiblegrills.conf /etc/nginx/sites-available/jogiinvisiblegrills.in
+sudo ln -sf /etc/nginx/sites-available/jogiinvisiblegrills.in /etc/nginx/sites-enabled/
 ```
+
+Issue or expand the certificate (both hostnames):
+
+```bash
+sudo certbot certonly --nginx -d jogiinvisiblegrills.in -d www.jogiinvisiblegrills.in
+# or renew / expand an existing cert:
+sudo certbot certonly --nginx --expand -d jogiinvisiblegrills.in -d www.jogiinvisiblegrills.in
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Canonical behavior:
+
+| Request | Result |
+|---------|--------|
+| `http://jogiinvisiblegrills.in/*` | → `https://www.jogiinvisiblegrills.in/*` |
+| `http://www.jogiinvisiblegrills.in/*` | → `https://www.jogiinvisiblegrills.in/*` |
+| `https://jogiinvisiblegrills.in/*` | → `https://www.jogiinvisiblegrills.in/*` |
+| `https://www.jogiinvisiblegrills.in/*` | proxied to PM2 on port 3000 |
+
+Full reference: [deploy/nginx-jogiinvisiblegrills.conf](./deploy/nginx-jogiinvisiblegrills.conf).
 
 ## 5. Sitemap checklist (Search Console)
 
@@ -99,17 +110,17 @@ After deploy, verify:
 
 | URL | Expected |
 |-----|----------|
-| `/robots.txt` | `Sitemap: https://www…/sitemap.xml` |
+| `/robots.txt` | `Sitemap: https://www.jogiinvisiblegrills.in/sitemap.xml` |
 | `/sitemap.xml` | **`<sitemapindex>`** listing child sitemaps |
 | `/sitemaps/core.xml` | `<urlset>` with core pages |
 | `/sitemaps/programmatic-1.xml` | `<urlset>` (≤ 40k URLs) |
 
 ```bash
-curl -sI https://www.jogendhrainvisiblegrills.in/sitemap.xml | head
-curl -s https://www.jogendhrainvisiblegrills.in/sitemap.xml | head -20
+curl -sI https://www.jogiinvisiblegrills.in/sitemap.xml | head
+curl -s https://www.jogiinvisiblegrills.in/sitemap.xml | head -20
 ```
 
-Submit **only** `/sitemap.xml` in Google Search Console (sitemap index).
+Submit **only** `https://www.jogiinvisiblegrills.in/sitemap.xml` in Google Search Console (URL-prefix property for `https://www.jogiinvisiblegrills.in/`).
 
 Local audit:
 
@@ -120,9 +131,11 @@ npm run inventory:summary
 
 ## 6. Post-deploy
 
-- [ ] Homepage canonical uses `NEXT_PUBLIC_SITE_URL`
+- [ ] Browser shows padlock on `https://www.jogiinvisiblegrills.in/`
+- [ ] `https://jogiinvisiblegrills.in/` redirects to www (no cert error)
+- [ ] Homepage canonical uses `https://www.jogiinvisiblegrills.in`
 - [ ] `/sitemap.xml` is a sitemap index (not a urlset of `.xml` links)
-- [ ] No 404 on `/sitemaps/programmatic-11.xml` (shard count matches inventory)
+- [ ] No 404 on programmatic sitemap shards
 - [ ] Contact form + admin login
 - [ ] `pm2 logs jogendhra-invisible-grills` — no crash loop
 

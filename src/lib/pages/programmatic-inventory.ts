@@ -74,7 +74,7 @@ export function computeProgrammaticInventory(): ProgrammaticInventory {
     addressableUrls,
     indexableIntentUrls,
     indexableProgrammaticEstimate,
-    warmStaticAtBuild: 1258,
+    warmStaticAtBuild: getWarmProgrammaticSlugs().length,
     hubPagesEstimate,
     indexableSitemapEstimate,
   };
@@ -172,33 +172,9 @@ export function getCanonicalPath(parsed: ParsedProgrammaticSlug): string {
   return buildProgrammaticPath(parsed.service.slug, parsed.location.slug);
 }
 
-/** ~1,258 warm static pages: all services + city×service + top area×service. */
+/** Programmatic URLs pre-rendered at build (remaining routes use ISR on first request). */
 export function getWarmProgrammaticSlugs(): string[] {
-  const slugs: string[] = [];
-  const services = getProgrammaticServices();
-  const cities = PROGRAMMATIC_CITIES;
-
-  for (const service of services) {
-    slugs.push(service.slug);
-  }
-
-  for (const service of services) {
-    for (const city of cities) {
-      slugs.push(`${service.slug}-${city.slug}`);
-    }
-  }
-
-  const topAreaSlugs = getProgrammaticLocations()
-    .filter((l) => l.kind === "area" && l.intentIndexable)
-    .slice(0, 10);
-
-  for (const service of services) {
-    for (const area of topAreaSlugs) {
-      slugs.push(`${service.slug}-${area.slug}`);
-    }
-  }
-
-  return slugs.slice(0, 1258);
+  return getProgrammaticServices().map((service) => service.slug);
 }
 
 export function* iterateAddressableSlugs(): Generator<string> {

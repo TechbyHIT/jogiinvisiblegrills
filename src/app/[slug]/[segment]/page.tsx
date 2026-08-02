@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cityServicePath } from "@/config/routes";
-import { getLocationBySlug, getPublishedLocations } from "@/data/initial-locations";
-import { getServiceBySlug, getPublishedServices } from "@/data/initial-services";
+import { getLocationBySlug } from "@/data/initial-locations";
+import { getServiceBySlug } from "@/data/initial-services";
 import { getPublishedPageByPath } from "@/lib/pages/get-published-page";
 import { generatePageMetadata } from "@/lib/seo/generate-page-metadata";
 import { assembleCityServicePageContent } from "@/lib/content/assemble-page-content";
@@ -27,15 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export function generateStaticParams() {
-  const locations = getPublishedLocations();
-  const services = getPublishedServices();
-
-  return locations.flatMap((location) =>
-    services.map((service) => ({
-      slug: location.slug,
-      segment: service.slug,
-    })),
-  );
+  return [];
 }
 
 export default async function CityServicePage({ params }: PageProps) {

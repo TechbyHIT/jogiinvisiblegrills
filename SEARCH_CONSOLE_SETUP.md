@@ -12,10 +12,10 @@ Add property in [Google Search Console](https://search.google.com/search-console
 After deploy, submit:
 
 ```
-https://www.jogendhrasafetynets.com/sitemap.xml
+https://www.jogiinvisiblegrills.in/sitemap.xml
 ```
 
-(Replace with your `NEXT_PUBLIC_SITE_URL`.)
+(Must match `NEXT_PUBLIC_SITE_URL` — always **https** and **www**.)
 
 Generate a local summary first:
 
