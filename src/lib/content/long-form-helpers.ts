@@ -1,4 +1,5 @@
 import type { AssembledPageSection } from "@/lib/content/assemble-page-content";
+import { BUSINESS_CONFIG } from "@/config/business";
 
 export type LongFormGroup = {
   idPrefix: string;
@@ -59,7 +60,7 @@ export function buildSearchIntentParagraphs(input: {
     `After ${svc} installation in ${placeName}, periodic checks after monsoon weather help spot loose anchors, reduced cable tension or mesh damage early. Safety systems reduce risk but do not replace supervision of children or pets near open edges.`,
     `Combining multiple openings in one ${loc} visit—main balcony, bedroom windows and utility areas—often improves overall value compared with piecemeal mobilisation. Prioritise highest-risk openings first if budget is phased across months.`,
     `Related ${placeName} searches for ${svc} company, service, suppliers or cost map here and to linked service pages for ${locationName}. We avoid doorway-page spam while keeping genuinely useful local information on canonical URLs.`,
-    `To enquire about ${svcTitle} in ${loc}, contact Jogendhra Safety Nets with floor level, property type, opening photos and your main priority—child safety, pet safety, mosquito control or view retention. We confirm served coverage before scheduling.`,
+    `To enquire about ${svcTitle} in ${loc}, contact ${BUSINESS_CONFIG.name} with floor level, property type, opening photos and your main priority—child safety, pet safety, mosquito control or view retention. We confirm served coverage before scheduling.`,
   ];
 }
 

@@ -68,7 +68,7 @@ function buildAreaLocalityParagraphs(
       : "mixed residential living";
 
   return [
-    `${area.name} in ${location.name}, ${location.state} is a served locality where Jogendhra Safety Nets provides invisible grills, balcony safety nets, children and pet nets, mosquito nets, bird spikes and related utility installations. Coverage is confirmed during enquiry for openings in ${propertyList}.`,
+    `${area.name} in ${location.name}, ${location.state} is a served locality where ${BUSINESS_CONFIG.name} provides invisible grills, balcony safety nets, children and pet nets, mosquito nets, bird spikes and related utility installations. Coverage is confirmed during enquiry for openings in ${propertyList}.`,
     `Residential patterns in ${area.name} commonly include ${characteristics}. These patterns influence whether view-preserving invisible grills, flexible balcony mesh or mosquito systems should take priority on each opening. We assess usage first—drying, ventilation, children’s play or pet access—before recommending a specification.`,
     `Homeowners in ${area.name} often ask about pricing, installation timelines, society approvals and material grades. Final quotations follow measurement of width, height, railing condition and access constraints such as lift size or high-floor scaffolding. Combining multiple openings in one visit usually improves overall value compared with piecemeal work.`,
     `For apartment projects in ${area.name}, ${location.name}, we coordinate with society guidelines on drilling, visible hardware and work timing wherever they apply. Independent houses and villas may need custom bracket planning for irregular railings, terrace edges or stair voids. Each opening is measured individually rather than assumed from a city average.`,
@@ -97,7 +97,7 @@ function buildAreaServiceLocalityParagraphs(
     `Local characteristics that shape ${service.shortName} work in ${area.name}: ${area.localCharacteristics.join("; ") || "mixed residential demand"}. Verified notes: ${area.verifiedLocalFacts.join(" ")}`,
     `Related searches such as ${service.shortName.toLowerCase()} ${area.name} price, best ${service.shortName.toLowerCase()} near ${area.name}, ${area.name} dealers or ${location.name} installation cost map to this page—not to separate doorway URLs. Browse the ${area.name} locality hub and ${location.name} city pages for broader coverage context.`,
     `Aftercare for ${service.shortName} in ${area.name} includes periodic visual checks after monsoon weather, avoiding heavy hanging loads on the system, and requesting re-tensioning or mesh repair if components look loose or damaged. Safety systems reduce risk but do not replace supervision of children or pets near open edges.`,
-    `To enquire about ${service.name} in ${area.name}, ${location.name}, contact Jogendhra Safety Nets with locality details, floor level, opening photos and whether child safety, pet safety, mosquito control or view retention is your main priority. We confirm served coverage honestly before scheduling.`,
+    `To enquire about ${service.name} in ${area.name}, ${location.name}, contact ${BUSINESS_CONFIG.name} with locality details, floor level, opening photos and whether child safety, pet safety, mosquito control or view retention is your main priority. We confirm served coverage honestly before scheduling.`,
   ];
 }
 
@@ -732,7 +732,7 @@ export function assembleSolutionPageContent(
     `Families researching ${problem.name.toLowerCase()} often compare invisible grills, balcony safety nets, children safety nets, pet nets and mosquito systems. The best fit depends on risk type, view preference, mesh spacing needs and society guidelines—not on a single marketed “best” product.`,
     `Pricing for ${problem.name.toLowerCase()} solutions follows measurement of openings, material grade, spacing, access difficulty and total quantity. Search phrases such as ${problem.name.toLowerCase()} price, best dealers or near me should lead to this solution page and linked services—not separate thin keyword URLs.`,
     `Installation planning includes site inspection, material confirmation, society coordination where required, careful fixing and handover with maintenance guidance. Safety systems reduce risk but do not replace adult supervision for children or pets near open edges.`,
-    `Browse related services linked from this page, then contact Jogendhra Safety Nets with photos and locality details for a measurement-based assessment in your served area.`,
+    `Browse related services linked from this page, then contact ${BUSINESS_CONFIG.name} with photos and locality details for a measurement-based assessment in your served area.`,
   ];
 
   const sections = splitIntoScrollSections(

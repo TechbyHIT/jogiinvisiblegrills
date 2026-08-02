@@ -16,13 +16,14 @@ import {
 import type { SearchIntent } from "@/data/search-intents";
 import type { ProgrammaticService } from "@/data/programmatic-services";
 import type { AreaRecord, LocationRecord, ServiceRecord } from "@/types";
+import { BUSINESS_CONFIG } from "@/config/business";
 
 function intentIntro(
   serviceName: string,
   intent: SearchIntent,
   locationName: string,
 ): string {
-  return `This page covers ${serviceName.toLowerCase()} ${intent.label.toLowerCase()} in ${locationName}. Jogendhra Safety Nets confirms honest service coverage, measurement-based quotations and professional installation — without separate doorway pages for every keyword variation.`;
+  return `This page covers ${serviceName.toLowerCase()} ${intent.label.toLowerCase()} in ${locationName}. ${BUSINESS_CONFIG.name} confirms honest service coverage, measurement-based quotations and professional installation — without separate doorway pages for every keyword variation.`;
 }
 
 export function assembleProgrammaticContent(input: {

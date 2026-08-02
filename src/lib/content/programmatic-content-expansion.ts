@@ -3,6 +3,7 @@ import { splitIntoScrollSections } from "@/lib/content/long-form-helpers";
 import type { SearchIntent } from "@/data/search-intents";
 import type { ProgrammaticService } from "@/data/programmatic-services";
 import type { ServiceRecord } from "@/types";
+import { BUSINESS_CONFIG } from "@/config/business";
 
 export type ContentExpansionContext = {
   service: ProgrammaticService;
@@ -142,7 +143,7 @@ const PRICING_PARAGRAPHS: ParagraphBuilder[] = [
   },
   (ctx) => {
     const k = kw(ctx);
-    return `Dealers and suppliers for ${k.svcLower} in ${k.loc} should confirm served coverage honestly. Jogendhra Safety Nets serves listed Bengaluru and Mysuru localities with measurement-led quotations—we do not invent branch offices in every pin code.`;
+    return `Dealers and suppliers for ${k.svcLower} in ${k.loc} should confirm served coverage honestly. ${BUSINESS_CONFIG.name} serves listed Bengaluru and Mysuru localities with measurement-led quotations—we do not invent branch offices in every pin code.`;
   },
   (ctx) => {
     const k = kw(ctx);
@@ -323,7 +324,7 @@ const WARRANTY_PARAGRAPHS: ParagraphBuilder[] = [
 const PREMIUM_NEAR_BEST_PARAGRAPHS: ParagraphBuilder[] = [
   (ctx) => {
     const k = kw(ctx);
-    return `Premium ${k.svcLower} near me in ${k.place} means documented materials, measurement-led quotes and clean finishing—not a marketing badge on a thin page. Jogendhra Safety Nets focuses on specification honesty for ${k.loc} homes.`;
+    return `Premium ${k.svcLower} near me in ${k.place} means documented materials, measurement-led quotes and clean finishing—not a marketing badge on a thin page. ${BUSINESS_CONFIG.name} focuses on specification honesty for ${k.loc} homes.`;
   },
   (ctx) => {
     const k = kw(ctx);
@@ -401,7 +402,7 @@ function intentParagraphs(slug: string): ParagraphBuilder[] {
     ],
     company: [
       (ctx) =>
-        `Choosing a ${kw(ctx).svcLower} company in ${kw(ctx).place}—verify served coverage, material grades quoted in writing and after-sales support. Jogendhra Safety Nets focuses on honest local service.`,
+        `Choosing a ${kw(ctx).svcLower} company in ${kw(ctx).place}—verify served coverage, material grades quoted in writing and after-sales support. ${BUSINESS_CONFIG.name} focuses on honest local service.`,
     ],
     contractors: [
       (ctx) =>

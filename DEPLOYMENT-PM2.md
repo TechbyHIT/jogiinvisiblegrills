@@ -70,7 +70,7 @@ Restart after deploy:
 
 ```bash
 npm run build:standalone
-pm2 restart jogendhra-invisible-grills
+pm2 restart jogi-invisible-grills
 ```
 
 ## 4. HTTPS + nginx
@@ -137,6 +137,46 @@ npm run inventory:summary
 - [ ] `/sitemap.xml` is a sitemap index (not a urlset of `.xml` links)
 - [ ] No 404 on programmatic sitemap shards
 - [ ] Contact form + admin login
-- [ ] `pm2 logs jogendhra-invisible-grills` — no crash loop
+- [ ] `pm2 logs jogi-invisible-grills` — no crash loop
+- [ ] Site identity check (must show **Jogi**, not another brand):
 
-See also [DEPLOYMENT.md](./DEPLOYMENT.md) and [SEARCH_CONSOLE_SETUP.md](./SEARCH_CONSOLE_SETUP.md).
+```bash
+curl -s http://127.0.0.1:3004/api/site-identity
+# {"brand":"Jogi Invisible Grills","deployMarker":"jogi-invisible-grills-next",...}
+
+curl -s https://www.jogiinvisiblegrills.in/api/site-identity
+```
+
+If the public URL returns another company (e.g. Deva Safety Nets) or `deployMarker` is missing, nginx is proxying to the **wrong port** or the wrong PM2 app — fix nginx `proxy_pass` to **3004** and ensure this repo’s PM2 process is running.
+
+## 7. Wrong site on this domain (troubleshooting)
+
+Symptom: `https://jogiinvisiblegrills.in/` shows **Deva Safety Nets**, Kerala content, or another project.
+
+Cause: On a shared VPS, **port 3000** is often already used by another Next.js site. If nginx `proxy_pass` points to 3000, this domain serves that other app.
+
+Fix on the server:
+
+```bash
+cd /var/www/jogiinvisiblegrills.in
+git pull
+npm run build:standalone
+
+# Stop old PM2 name if present
+pm2 delete jogendhra-invisible-grills 2>/dev/null || true
+
+pm2 start ecosystem.config.cjs   # listens on 127.0.0.1:3004
+pm2 save
+
+curl -s http://127.0.0.1:3004/api/site-identity | head
+# must include "Jogi Invisible Grills"
+
+sudo cp deploy/nginx-jogiinvisiblegrills.conf /etc/nginx/sites-available/jogiinvisiblegrills.in
+# confirm proxy_pass http://127.0.0.1:3004;
+sudo nginx -t && sudo systemctl reload nginx
+
+curl -s https://www.jogiinvisiblegrills.in/api/site-identity
+```
+
+Ensure no other nginx `server` block uses `default_server` on 443 with the wrong `proxy_pass` for `jogiinvisiblegrills.in`. Each domain needs its own `server_name` and port.
+
