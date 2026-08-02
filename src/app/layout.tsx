@@ -25,6 +25,10 @@ export const metadata: Metadata = {
     template: `%s | ${BUSINESS_CONFIG.name}`,
   },
   description: BUSINESS_CONFIG.description,
+  icons: {
+    icon: [{ url: "/images/brand/jogi-favicon-circle.png", type: "image/png" }],
+    apple: [{ url: "/images/brand/jogi-favicon-circle.png", type: "image/png" }],
+  },
   openGraph: {
     type: "website",
     locale: SITE_CONFIG.locale,

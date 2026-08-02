@@ -13,6 +13,7 @@ import {
   normalizeSiteUrl,
   SITEMAP_XML_HEADERS,
 } from "@/lib/sitemap/sitemap-xml";
+import { sitemapPageUrl } from "@/lib/sitemap/sitemap-urls";
 
 type RouteContext = {
   params: Promise<{ group: string }>;
@@ -22,7 +23,7 @@ export const revalidate = 86400;
 
 export async function GET(_request: Request, context: RouteContext) {
   const { group } = await context.params;
-  const groupId = group.replace(/\.xml$/, "");
+  const groupId = decodeURIComponent(group).replace(/\.xml$/i, "").replace(/\/+$/, "");
 
   const programmaticMatch = /^programmatic-(\d+)$/.exec(groupId);
   if (programmaticMatch) {
@@ -49,7 +50,7 @@ export async function GET(_request: Request, context: RouteContext) {
 
   const xml = buildUrlSetXml(
     pages.map((page) => ({
-      loc: `${base}${page.path.startsWith("/") ? page.path : `/${page.path}`}`,
+      loc: sitemapPageUrl(base, page.path),
       lastmod: page.updatedAt.split("T")[0],
       changefreq: sitemapGroup.changefreq,
       priority: sitemapGroup.priority,

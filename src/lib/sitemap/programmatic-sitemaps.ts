@@ -4,6 +4,7 @@ import {
   buildUrlSetXml,
   normalizeSiteUrl,
 } from "@/lib/sitemap/sitemap-xml";
+import { sitemapChildUrl, sitemapPageUrl } from "@/lib/sitemap/sitemap-urls";
 
 /** Google max is 50,000 URLs per sitemap file. */
 export const PROGRAMMATIC_SITEMAP_CHUNK_SIZE = 40_000;
@@ -24,7 +25,7 @@ export function getProgrammaticSitemapIndexEntries(): Array<{
   const count = getProgrammaticSitemapShardCount();
   return Array.from({ length: count }, (_, i) => ({
     id: `programmatic-${i + 1}`,
-    url: `${base}/sitemaps/programmatic-${i + 1}.xml`,
+    url: sitemapChildUrl(base, `programmatic-${i + 1}`),
   }));
 }
 
@@ -47,7 +48,7 @@ export function buildProgrammaticSitemapXml(slugs: string[]): string {
 
   return buildUrlSetXml(
     slugs.map((slug) => ({
-      loc: `${base}/${slug}/`,
+      loc: sitemapPageUrl(base, slug),
       lastmod,
       changefreq: "weekly",
       priority: 0.6,

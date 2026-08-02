@@ -100,7 +100,72 @@ Canonical behavior:
 | `http://jogiinvisiblegrills.in/*` | → `https://www.jogiinvisiblegrills.in/*` |
 | `http://www.jogiinvisiblegrills.in/*` | → `https://www.jogiinvisiblegrills.in/*` |
 | `https://jogiinvisiblegrills.in/*` | → `https://www.jogiinvisiblegrills.in/*` |
-| `https://www.jogiinvisiblegrills.in/*` | proxied to PM2 on port 3000 |
+| `https://www.jogiinvisiblegrills.in/*` | proxied to PM2 on port **3004** |
+
+**Symptom:** `curl: (60) SSL: no alternative certificate subject name matches target host name 'www.jogiinvisiblegrills.in'` — nginx is presenting a **different site’s certificate** (common on shared VPS) or a cert that only covers the apex name.
+
+Diagnose:
+
+```bash
+echo | openssl s_client -connect www.jogiinvisiblegrills.in:443 -servername www.jogiinvisiblegrills.in 2>/dev/null | openssl x509 -noout -subject -ext subjectAltName
+
+sudo grep -E "ssl_certificate|server_name" /etc/nginx/sites-available/jogiinvisiblegrills.in
+sudo certbot certificates | grep -A5 jogiinvisiblegrills
+```
+
+Fix — issue one cert for **both** names and point nginx at it:
+
+```bash
+sudo certbot certonly --nginx -d jogiinvisiblegrills.in -d www.jogiinvisiblegrills.in
+# If a cert already exists for the apex only, add: --expand
+
+sudo cp /var/www/jogiinvisiblegrills.in/deploy/nginx-jogiinvisiblegrills.conf /etc/nginx/sites-available/jogiinvisiblegrills.in
+sudo ln -sf /etc/nginx/sites-available/jogiinvisiblegrills.in /etc/nginx/sites-enabled/jogiinvisiblegrills.in
+sudo nginx -t && sudo systemctl reload nginx
+
+curl -sS https://www.jogiinvisiblegrills.in/api/site-identity/
+```
+
+**Still `curl: (60)`?** Copying only to `sites-available` is not enough if the symlink is missing, or Let’s Encrypt files do not exist yet:
+
+```bash
+ls -la /etc/nginx/sites-enabled/jogiinvisiblegrills.in
+sudo ls /etc/letsencrypt/live/jogiinvisiblegrills.in/
+echo | openssl s_client -connect www.jogiinvisiblegrills.in:443 -servername www.jogiinvisiblegrills.in 2>/dev/null \
+  | openssl x509 -noout -subject -ext subjectAltName
+sudo nginx -T 2>/dev/null | grep -B2 -A25 'server_name www.jogiinvisiblegrills.in'
+```
+
+The openssl output must list `DNS:www.jogiinvisiblegrills.in`. The `nginx -T` block must show `proxy_pass http://127.0.0.1:3004` and cert paths under `live/jogiinvisiblegrills.in/`.
+
+If openssl shows **`CN = devasafetynets.com`** (or another domain) for `www.jogiinvisiblegrills.in`, nginx is using **Deva’s default HTTPS vhost** because Jogi’s **443 `server_name` block is missing, misconfigured, or not enabled** — even when Let’s Encrypt already has a Jogi certificate (`certbot` may say “not yet due for renewal”).
+
+Fix:
+
+```bash
+sudo certbot certificates | grep -A6 jogiinvisiblegrills
+grep -E "listen|server_name|ssl_certificate" /etc/nginx/sites-available/jogiinvisiblegrills.in
+sudo ln -sf /etc/nginx/sites-available/jogiinvisiblegrills.in /etc/nginx/sites-enabled/jogiinvisiblegrills.in
+sudo cp /var/www/jogiinvisiblegrills.in/deploy/nginx-jogiinvisiblegrills.conf /etc/nginx/sites-available/jogiinvisiblegrills.in
+sudo nginx -t && sudo systemctl reload nginx
+
+sudo nginx -T 2>/dev/null | grep -B1 -A28 'server_name www.jogiinvisiblegrills.in'
+echo | openssl s_client -connect www.jogiinvisiblegrills.in:443 -servername www.jogiinvisiblegrills.in 2>/dev/null \
+  | openssl x509 -noout -subject -ext subjectAltName
+```
+
+`nginx -T` must show `ssl_certificate .../live/jogiinvisiblegrills.in/` and `proxy_pass http://127.0.0.1:3004`. Only if `certbot certificates` lists **apex only** (no `www`), force an expand:
+
+```bash
+sudo certbot certonly --nginx --expand --force-renewal \
+  -d jogiinvisiblegrills.in -d www.jogiinvisiblegrills.in --non-interactive --agree-tos
+```
+
+Optional: remove `default_server` from Deva’s `listen 443` so a missing vhost does not show the wrong brand’s certificate:
+
+```bash
+grep -rn default_server /etc/nginx/sites-enabled/
+```
 
 Full reference: [deploy/nginx-jogiinvisiblegrills.conf](./deploy/nginx-jogiinvisiblegrills.conf).
 
@@ -122,6 +187,15 @@ curl -s https://www.jogiinvisiblegrills.in/sitemap.xml | head -20
 
 Submit **only** `https://www.jogiinvisiblegrills.in/sitemap.xml` in Google Search Console (URL-prefix property for `https://www.jogiinvisiblegrills.in/`).
 
+After HTTPS is fixed, verify child sitemaps return XML (not 404/SSL error):
+
+```bash
+curl -sS -o /dev/null -w "%{http_code}" https://www.jogiinvisiblegrills.in/sitemaps/core.xml/
+curl -sS https://www.jogiinvisiblegrills.in/sitemaps/core.xml/ | head -5
+```
+
+Search Console **“Couldn’t fetch”** on child sitemaps is usually **invalid SSL** (wrong certificate) or **404** from URL/trailing-slash mismatch. Re-submit the sitemap index after deploy.
+
 Local audit:
 
 ```bash
@@ -141,10 +215,10 @@ npm run inventory:summary
 - [ ] Site identity check (must show **Jogi**, not another brand):
 
 ```bash
-curl -s http://127.0.0.1:3004/api/site-identity
+curl -s http://127.0.0.1:3004/api/site-identity/
 # {"brand":"Jogi Invisible Grills","deployMarker":"jogi-invisible-grills-next",...}
 
-curl -s https://www.jogiinvisiblegrills.in/api/site-identity
+curl -s https://www.jogiinvisiblegrills.in/api/site-identity/
 ```
 
 If the public URL returns another company (e.g. Deva Safety Nets) or `deployMarker` is missing, nginx is proxying to the **wrong port** or the wrong PM2 app — fix nginx `proxy_pass` to **3004** and ensure this repo’s PM2 process is running.
@@ -168,15 +242,45 @@ pm2 delete jogendhra-invisible-grills 2>/dev/null || true
 pm2 start ecosystem.config.cjs   # listens on 127.0.0.1:3004
 pm2 save
 
-curl -s http://127.0.0.1:3004/api/site-identity | head
+curl -s http://127.0.0.1:3004/api/site-identity/ | head
 # must include "Jogi Invisible Grills"
 
 sudo cp deploy/nginx-jogiinvisiblegrills.conf /etc/nginx/sites-available/jogiinvisiblegrills.in
 # confirm proxy_pass http://127.0.0.1:3004;
 sudo nginx -t && sudo systemctl reload nginx
 
-curl -s https://www.jogiinvisiblegrills.in/api/site-identity
+curl -s https://www.jogiinvisiblegrills.in/api/site-identity/
 ```
 
 Ensure no other nginx `server` block uses `default_server` on 443 with the wrong `proxy_pass` for `jogiinvisiblegrills.in`. Each domain needs its own `server_name` and port.
 
+## 8. nginx `-t` warnings (shared VPS)
+
+If reload shows **`protocol options redefined for 0.0.0.0:443`** for `deva-safety-nets`, `hiranyaenterprises.in`, etc.: multiple site configs each use `listen 443 ssl http2`. Nginx picks one set of options; **syntax is still OK** and the site can work. To reduce noise, use the same `listen` pattern everywhere (e.g. `listen 443 ssl;` without `http2` on each vhost) or ignore the warn if `nginx: configuration file ... test is successful`.
+
+If you see **`conflicting server name "saidurgainvisiblegrills.in" ... ignored`**: two enabled configs define the same `server_name`. On this server that is usually **`saidurga`** and **`saidurgainvisiblegrills.in`** both enabled:
+
+```bash
+grep server_name /etc/nginx/sites-available/saidurga /etc/nginx/sites-available/saidurgainvisiblegrills.in
+# Disable the older duplicate (keep saidurgainvisiblegrills.in):
+sudo rm /etc/nginx/sites-enabled/saidurga
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+Confirm Jogi is wired correctly (independent of Deva on port 3000):
+
+```bash
+grep -r "server_name.*jogiinvisiblegrills" /etc/nginx/sites-enabled/
+grep "proxy_pass" /etc/nginx/sites-available/jogiinvisiblegrills.in
+# proxy_pass http://127.0.0.1:3004;
+
+pm2 list
+pm2 logs jogi-invisible-grills --lines 30 --nostream
+
+curl -sS http://127.0.0.1:3004/api/site-identity/
+curl -sS https://www.jogiinvisiblegrills.in/api/site-identity/
+```
+
+If localhost returns nothing or connection refused, the app is not listening on **3004** — run `pm2 start ecosystem.config.cjs` after `npm run build:standalone`. This project uses **`trailingSlash: true`**, so use **`/api/site-identity/`** (with trailing slash) in curl.
+
+See also [DEPLOYMENT.md](./DEPLOYMENT.md) and [SEARCH_CONSOLE_SETUP.md](./SEARCH_CONSOLE_SETUP.md).
