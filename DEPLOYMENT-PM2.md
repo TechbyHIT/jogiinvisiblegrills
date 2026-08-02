@@ -70,8 +70,29 @@ Restart after deploy:
 
 ```bash
 npm run build:standalone
-pm2 restart jogi-invisible-grills
+pm2 delete jogi-invisible-grills 2>/dev/null || true
+pm2 start ecosystem.config.cjs
+pm2 save
 ```
+
+**502 Bad Gateway** from nginx means nothing is listening on **3004** (crashed app, failed build, or wrong PM2 `cwd`). PM2 must run **`server.js` from `.next/standalone/`** (see `ecosystem.config.cjs`).
+
+```bash
+cd /var/www/jogiinvisiblegrills.in
+test -f .next/standalone/server.js || echo "BUILD MISSING — run npm run build:standalone"
+
+export NODE_OPTIONS=--max-old-space-size=8192
+npm run build:standalone
+
+pm2 delete jogi-invisible-grills 2>/dev/null || true
+pm2 start ecosystem.config.cjs
+pm2 logs jogi-invisible-grills --lines 40 --nostream
+
+ss -tlnp | grep 3004
+curl -sS http://127.0.0.1:3004/api/site-identity/
+```
+
+If PM2 shows **errored** or **restart loop**, read logs for OOM or missing `server.js`. Increase `max_memory_restart` in `ecosystem.config.cjs` if the VPS has RAM headroom.
 
 ## 4. HTTPS + nginx
 
