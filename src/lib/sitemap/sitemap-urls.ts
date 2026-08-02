@@ -1,8 +1,8 @@
-/** Child sitemap URLs (trailing slash matches `trailingSlash: true`). */
+/** Child sitemap URLs (.xml paths are trailing-slash exceptions in Next.js). */
 export function sitemapChildUrl(base: string, id: string): string {
   const normalized = base.replace(/\/+$/, "");
   const file = id.endsWith(".xml") ? id : `${id}.xml`;
-  return `${normalized}/sitemaps/${file}/`;
+  return `${normalized}/sitemaps/${file}`;
 }
 
 export function sitemapPageUrl(base: string, path: string): string {

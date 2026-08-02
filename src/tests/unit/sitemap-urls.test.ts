@@ -4,7 +4,7 @@ import { sitemapChildUrl, sitemapPageUrl } from "@/lib/sitemap/sitemap-urls";
 describe("sitemap urls", () => {
   it("builds child sitemap loc with trailing slash", () => {
     expect(sitemapChildUrl("https://www.jogiinvisiblegrills.in", "core")).toBe(
-      "https://www.jogiinvisiblegrills.in/sitemaps/core.xml/",
+      "https://www.jogiinvisiblegrills.in/sitemaps/core.xml",
     );
   });
 

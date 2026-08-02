@@ -25,6 +25,29 @@ npm run sitemaps:generate
 
 Review `reports/sitemap-summary.json` for indexable URL counts by group.
 
+### “Couldn’t fetch” on child sitemaps
+
+Usually caused by **invalid SSL** (fixed on VPS) or **stale Search Console status** from before HTTPS worked.
+
+On the server, every child must return **200** and `Content-Type: application/xml`:
+
+```bash
+curl -sI https://www.jogiinvisiblegrills.in/sitemaps/core.xml | head -5
+curl -sI https://www.jogiinvisiblegrills.in/sitemaps/programmatic-1.xml | head -5
+```
+
+In Search Console → **Sitemaps**: remove `sitemap.xml`, wait a few minutes, submit again:
+
+`https://www.jogiinvisiblegrills.in/sitemap.xml`
+
+Optional ping (after HTTPS is valid):
+
+```bash
+curl "https://www.google.com/ping?sitemap=https://www.jogiinvisiblegrills.in/sitemap.xml"
+```
+
+Discovered URL counts can take **24–72 hours** after successful fetches.
+
 ## 3. Inspect Phase-1 URLs
 
 Manually inspect:

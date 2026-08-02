@@ -211,8 +211,8 @@ Submit **only** `https://www.jogiinvisiblegrills.in/sitemap.xml` in Google Searc
 After HTTPS is fixed, verify child sitemaps return XML (not 404/SSL error):
 
 ```bash
-curl -sS -o /dev/null -w "%{http_code}" https://www.jogiinvisiblegrills.in/sitemaps/core.xml/
-curl -sS https://www.jogiinvisiblegrills.in/sitemaps/core.xml/ | head -5
+curl -sS -o /dev/null -w "%{http_code}" https://www.jogiinvisiblegrills.in/sitemaps/core.xml
+curl -sS https://www.jogiinvisiblegrills.in/sitemaps/core.xml | head -5
 ```
 
 Search Console **“Couldn’t fetch”** on child sitemaps is usually **invalid SSL** (wrong certificate) or **404** from URL/trailing-slash mismatch. Re-submit the sitemap index after deploy.

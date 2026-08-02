@@ -16,8 +16,8 @@ describe("sitemap XML", () => {
   it("lists legacy groups and programmatic shards in the index", () => {
     const entries = getSitemapIndexChildEntries();
     expect(entries.length).toBeGreaterThan(10);
-    expect(entries.some((e) => e.loc.endsWith("/sitemaps/core.xml/"))).toBe(true);
-    expect(entries.some((e) => e.loc.includes("/sitemaps/programmatic-1.xml/"))).toBe(
+    expect(entries.some((e) => e.loc.endsWith("/sitemaps/core.xml"))).toBe(true);
+    expect(entries.some((e) => e.loc.includes("/sitemaps/programmatic-1.xml"))).toBe(
       true,
     );
     expect(entries.every((e) => e.loc.startsWith("http"))).toBe(true);
