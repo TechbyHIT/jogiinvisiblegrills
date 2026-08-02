@@ -87,12 +87,16 @@ function hubLinks(hubs: SeoLinkHub[], id: string): ExploreMoreLink[] {
   return hub.links.map((l) => ({ href: l.href, label: l.label }));
 }
 
+function isProgrammaticCitySlug(slug: string): slug is "bengaluru" | "mysuru" {
+  return slug === "bengaluru" || slug === "mysuru";
+}
+
 function entityCitySlug(parsed: ParsedProgrammaticSlug): "bengaluru" | "mysuru" | undefined {
   if (parsed.layer === "service") return undefined;
   if (parsed.location.kind === "city") {
-    return parsed.location.slug as "bengaluru" | "mysuru";
+    return isProgrammaticCitySlug(parsed.location.slug) ? parsed.location.slug : undefined;
   }
-  return parsed.location.citySlug;
+  return isProgrammaticCitySlug(parsed.location.citySlug) ? parsed.location.citySlug : undefined;
 }
 
 function legacyLocationSlug(city: "bengaluru" | "mysuru") {
