@@ -1,0 +1,31 @@
+export const SEO_CONFIG = {
+  titleSeparator: " | ",
+  defaultRobots: {
+    index: true,
+    follow: true,
+  },
+  wordCountTargets: {
+    service: { min: 1200, max: 2500 },
+    location: { min: 700, max: 1500 },
+    "service-location": { min: 1000, max: 2000 },
+    "service-area": { min: 900, max: 1800 },
+    area: { min: 700, max: 1400 },
+    solution: { min: 900, max: 1800 },
+    "property-type-service": { min: 900, max: 1800 },
+    guide: { min: 1500, max: 3000 },
+    blog: { min: 1200, max: 2500 },
+    core: { min: 400, max: 2000 },
+  },
+  crawlPriorityByType: {
+    core: "high",
+    service: "high",
+    location: "high",
+    "service-location": "high",
+    "service-area": "medium",
+    area: "medium",
+    solution: "medium",
+    "property-type-service": "medium",
+    guide: "medium",
+    blog: "low",
+  } as Record<string, "high" | "medium" | "low">,
+} as const;

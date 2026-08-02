@@ -1,0 +1,53 @@
+{
+  "name": "jogendhra-safety-nets",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3004",
+    "build": "next build",
+    "build:standalone": "next build && node scripts/prepare-standalone.cjs",
+    "start": "next start -p 3004",
+    "start:standalone": "node .next/standalone/server.js",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "format": "prettier --write .",
+    "seo:audit": "tsx scripts/seo-audit.ts",
+    "content:audit": "tsx scripts/content-audit.ts",
+    "duplicates:audit": "tsx scripts/duplicate-audit.ts",
+    "links:audit": "tsx scripts/internal-link-audit.ts",
+    "schema:audit": "tsx scripts/schema-audit.ts",
+    "pages:create": "tsx scripts/create-page-records.ts",
+    "pages:publish": "tsx scripts/publish-pages.ts",
+    "pages:noindex": "tsx scripts/noindex-pages.ts",
+    "pages:count": "tsx scripts/page-count.ts",
+    "inventory:summary": "tsx scripts/inventory-summary.ts",
+    "localities:import": "tsx scripts/import-localities.ts",
+    "images:sync": "tsx scripts/sync-project-images.ts",
+    "pages:audit": "tsx scripts/content-audit.ts",
+    "sitemaps:generate": "tsx scripts/generate-sitemaps.ts",
+    "placeholder:audit": "tsx scripts/placeholder-audit.ts"
+  },
+  "dependencies": {
+    "next": "16.2.12",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.12",
+    "prettier": "^3.9.6",
+    "prettier-plugin-tailwindcss": "^0.6.14",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.1",
+    "typescript": "^5",
+    "vitest": "^3.2.7"
+  }
+}
