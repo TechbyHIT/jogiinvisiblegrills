@@ -10,35 +10,33 @@
 ## 1. Clone and env
 
 ```bash
-cd /var/www/jogendhrainvisiblegrills.in
+cd /var/www/jogiinvisiblegrills.in
 git pull
 
-cp .env.example .env.local
+npm run env:setup
 ```
 
-Set production values in `.env.local`:
+This copies `.env.example` → `.env.local` once and auto-generates `ADMIN_PASSWORD` and `REVALIDATE_SECRET`. **No manual typing** — site URL, phone, WhatsApp, and email are already set in `.env.example`.
 
-```env
-NEXT_PUBLIC_SITE_URL=https://www.jogendhrainvisiblegrills.in
-# or https://jogendhrainvisiblegrills.in — pick ONE canonical host in nginx + Search Console
+To view admin password after setup:
 
-NEXT_PUBLIC_PHONE_DISPLAY=+91 80197 18338
-NEXT_PUBLIC_PHONE_RAW=918019718338
-NEXT_PUBLIC_WHATSAPP_DISPLAY=+91 63091 88085
-NEXT_PUBLIC_WHATSAPP_RAW=916309188085
-
-ADMIN_PASSWORD=<strong-secret>
-REVALIDATE_SECRET=<random-secret>
+```bash
+grep ADMIN_PASSWORD .env.local
 ```
 
-**Important:** `NEXT_PUBLIC_SITE_URL` must match the live domain exactly (scheme + host). All sitemap and canonical URLs use this value.
+Optional overrides only if needed:
+
+```bash
+nano .env.local
+```
 
 ## 2. Build (standalone)
 
 ```bash
+npm run env:setup
 npm ci
-npm run typecheck
-npm run test
+# fallback if ci fails: npm install
+export NODE_OPTIONS=--max-old-space-size=8192
 npm run build:standalone
 ```
 

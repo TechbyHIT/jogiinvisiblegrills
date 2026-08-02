@@ -13,7 +13,7 @@ Professional invisible grills, balcony safety nets, mosquito nets and related ho
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in contact details
+cp .env.example .env.local   # or: npm run env:setup
 npm run dev
 ```
 

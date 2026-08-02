@@ -27,7 +27,8 @@
     "images:sync": "tsx scripts/sync-project-images.ts",
     "pages:audit": "tsx scripts/content-audit.ts",
     "sitemaps:generate": "tsx scripts/generate-sitemaps.ts",
-    "placeholder:audit": "tsx scripts/placeholder-audit.ts"
+    "placeholder:audit": "tsx scripts/placeholder-audit.ts",
+    "env:setup": "node scripts/setup-env.cjs"
   },
   "dependencies": {
     "next": "16.2.12",

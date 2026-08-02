@@ -21,6 +21,12 @@ mkdirSync(standaloneNext, { recursive: true });
 cpSync(publicDir, join(standaloneDir, "public"), { recursive: true });
 cpSync(staticDir, join(standaloneNext, "static"), { recursive: true });
 
+const envLocal = join(root, ".env.local");
+if (existsSync(envLocal)) {
+  cpSync(envLocal, join(standaloneDir, ".env.local"));
+  console.log("  .env.local copied into standalone bundle.");
+}
+
 console.log("Standalone bundle ready:");
 console.log(`  ${join(standaloneDir, "server.js")}`);
 console.log("  public/ and .next/static/ copied.");

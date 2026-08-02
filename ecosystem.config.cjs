@@ -13,6 +13,8 @@ module.exports = {
         PORT: 3000,
         HOSTNAME: "127.0.0.1",
       },
+      /** Runtime reads `.env.local` if present (create via `npm run env:setup`). */
+      env_file: ".env.local",
     },
   ],
 };
