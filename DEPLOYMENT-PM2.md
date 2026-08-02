@@ -304,4 +304,4 @@ curl -sS https://www.jogiinvisiblegrills.in/api/site-identity/
 
 If localhost returns nothing or connection refused, the app is not listening on **3004** — run `pm2 start ecosystem.config.cjs` after `npm run build:standalone`. This project uses **`trailingSlash: true`**, so use **`/api/site-identity/`** (with trailing slash) in curl.
 
-See also [DEPLOYMENT.md](./DEPLOYMENT.md) and [SEARCH_CONSOLE_SETUP.md](./SEARCH_CONSOLE_SETUP.md).
+See also [DEPLOYMENT.md](./DEPLOYMENT.md), [SEARCH_CONSOLE_SETUP.md](./SEARCH_CONSOLE_SETUP.md), and [SERVER-DISK-CLEANUP.md](./deploy/SERVER-DISK-CLEANUP.md) (automatic cache cleanup for all `/var/www` sites).
