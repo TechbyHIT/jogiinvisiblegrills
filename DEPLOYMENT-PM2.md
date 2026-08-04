@@ -9,49 +9,50 @@ This repo documents two VPS layouts:
 | Legacy | `/var/www/jogiinvisiblegrills.in` | `ecosystem.config.cjs` in repo |
 | **ap-sites multisite** | `/srv/sites/jogiinvisiblegrills/current` | `/etc/ap-sites/ecosystem.multisite.config.cjs` |
 
-If `cd /var/www/jogiinvisiblegrills.in` fails, you are on **ap-sites**. Use:
+**ap-sites release layout:** PM2 uses flat `current/server.js`. Fleet config sets **`HOSTNAME=localhost`** (listens on `[::1]`). Nginx **`proxy_pass` must be `http://localhost:3002`** — **not** `127.0.0.1` (that causes 502).
+
+### Port + registry (do not hand-edit ecosystem.multisite.config.cjs)
 
 ```bash
-pm2 describe jogiinvisiblegrills | grep -E "exec cwd|script path|PORT"
-ls -la /srv/sites/jogiinvisiblegrills/current
-cat /etc/ap-sites/ecosystem.multisite.config.cjs | grep -A20 jogi
+# /etc/ap-sites/sites.d/jogiinvisiblegrills.env
+PORT=3002
+DOMAIN=jogiinvisiblegrills.in
+ALIASES=www.jogiinvisiblegrills.in
+REPO=https://github.com/TechbyHIT/jogiinvisiblegrills.git
+BRANCH=main
+MAX_MEMORY=768M
 ```
-
-Deploy via your multisite tool from `~/ap-all-areas` (same as `hiranaya-enterprises`). **Do not** run `pm2 start ecosystem.config.cjs` from `ap-all-areas` — that starts the wrong app.
-
-**`/srv/sites/jogiinvisiblegrills/current` is NOT a git repo.** It is a symlink to a built release (only `server.js`, `public/`, `.next/static`, etc.). `git pull` there will always fail — that is normal.
-
-Deploy updated code from GitHub:
 
 ```bash
-cd ~/ap-all-areas
-
-# find the Jogi deploy command (same pattern as hiranaya-enterprises)
-grep -ri jogi . 2>/dev/null | head -20
-ls scripts bin deploy 2>/dev/null
-
-# typical ap-sites pattern (adjust to your script name):
-./scripts/deploy-site.sh jogiinvisiblegrills
-# or:
-./deploy hiranaya-enterprises   # example that worked for Hiranya
+pm2 delete jogiinvisiblegrills 2>/dev/null || true
+pm2 start /etc/ap-sites/ecosystem.multisite.config.cjs --only jogiinvisiblegrills
+pm2 save
+curl -sS http://localhost:3002/api/site-identity/
 ```
 
-GitHub source: `https://github.com/TechbyHIT/jogiinvisiblegrills.git` — the deploy script clones/builds from there into `/srv/sites/jogiinvisiblegrills/releases/TIMESTAMP`, then switches `current`.
+### Nginx — one vhost only (502 / conflicting server name)
 
-After deploy, set Jogi **PORT=3002** in `/etc/ap-sites/ecosystem.multisite.config.cjs`, then:
+**Never enable both** `jogiinvisiblegrills.conf` and `jogiinvisiblegrills.in`. Duplicate `server_name` → nginx **ignores** the new file and keeps the old (broken) proxy.
 
 ```bash
-pm2 reload /etc/ap-sites/ecosystem.multisite.config.cjs --only jogiinvisiblegrills
-curl -sS http://127.0.0.1:3002/api/site-identity/
+# Install official vhost from release (or this repo)
+sudo cp /srv/sites/jogiinvisiblegrills/current/deploy/nginx-jogiinvisiblegrills.conf \
+  /etc/nginx/sites-available/jogiinvisiblegrills.in
+
+# Enable ONLY .in — remove the old .conf symlink
+sudo rm -f /etc/nginx/sites-enabled/jogiinvisiblegrills.conf
+sudo ln -sf /etc/nginx/sites-available/jogiinvisiblegrills.in /etc/nginx/sites-enabled/jogiinvisiblegrills.in
+
+sudo nginx -t   # must NOT say: conflicting server name ... jogiinvisiblegrills
+sudo systemctl reload nginx
+curl -sS https://www.jogiinvisiblegrills.in/api/site-identity/
 ```
 
-Nginx `proxy_pass` must match that port. Copy vhost from the site release:
+`deploy/nginx-jogiinvisiblegrills.conf` uses `proxy_pass http://localhost:3002;`.
 
-```bash
-JOGI=$(readlink -f /srv/sites/jogiinvisiblegrills/current 2>/dev/null || echo /srv/sites/jogiinvisiblegrills/current)
-sudo cp "$JOGI/deploy/nginx-jogiinvisiblegrills.conf" /etc/nginx/sites-available/jogiinvisiblegrills.in
-sudo nginx -t && sudo systemctl reload nginx
-```
+### Deploy code updates
+
+`/srv/sites/jogiinvisiblegrills/current` is **not** a git repo. Deploy from `~/ap-all-areas` (same as hiranaya-enterprises). GitHub: `https://github.com/TechbyHIT/jogiinvisiblegrills.git`.
 
 ---
 
@@ -144,7 +145,7 @@ pm2 start ecosystem.config.cjs
 pm2 logs jogi-invisible-grills --lines 40 --nostream
 
 ss -tlnp | grep 3002
-curl -sS http://127.0.0.1:3002/api/site-identity/
+curl -sS http://localhost:3002/api/site-identity/
 ```
 
 If PM2 shows **errored** or **restart loop**, read logs for OOM or missing `server.js`. Increase `max_memory_restart` in `ecosystem.config.cjs` if the VPS has RAM headroom.
@@ -212,7 +213,7 @@ echo | openssl s_client -connect www.jogiinvisiblegrills.in:443 -servername www.
 sudo nginx -T 2>/dev/null | grep -B2 -A25 'server_name www.jogiinvisiblegrills.in'
 ```
 
-The openssl output must list `DNS:www.jogiinvisiblegrills.in`. The `nginx -T` block must show `proxy_pass http://127.0.0.1:3002` and cert paths under `live/jogiinvisiblegrills.in/`.
+The openssl output must list `DNS:www.jogiinvisiblegrills.in`. The `nginx -T` block must show `proxy_pass http://localhost:3002` and cert paths under `live/jogiinvisiblegrills.in/`.
 
 If openssl shows **`CN = devasafetynets.com`** (or another domain) for `www.jogiinvisiblegrills.in`, nginx is using **Deva’s default HTTPS vhost** because Jogi’s **443 `server_name` block is missing, misconfigured, or not enabled** — even when Let’s Encrypt already has a Jogi certificate (`certbot` may say “not yet due for renewal”).
 
@@ -230,7 +231,7 @@ echo | openssl s_client -connect www.jogiinvisiblegrills.in:443 -servername www.
   | openssl x509 -noout -subject -ext subjectAltName
 ```
 
-`nginx -T` must show `ssl_certificate .../live/jogiinvisiblegrills.in/` and `proxy_pass http://127.0.0.1:3002`. Only if `certbot certificates` lists **apex only** (no `www`), force an expand:
+`nginx -T` must show `ssl_certificate .../live/jogiinvisiblegrills.in/` and `proxy_pass http://localhost:3002`. Only if `certbot certificates` lists **apex only** (no `www`), force an expand:
 
 ```bash
 sudo certbot certonly --nginx --expand --force-renewal \
@@ -291,7 +292,7 @@ npm run inventory:summary
 - [ ] Site identity check (must show **Jogi**, not another brand):
 
 ```bash
-curl -s http://127.0.0.1:3002/api/site-identity/
+curl -s http://localhost:3002/api/site-identity/
 # {"brand":"Jogi Invisible Grills","deployMarker":"jogi-invisible-grills-next",...}
 
 curl -s https://www.jogiinvisiblegrills.in/api/site-identity/
@@ -315,14 +316,16 @@ npm run build:standalone
 # Stop old PM2 name if present
 pm2 delete jogendhra-invisible-grills 2>/dev/null || true
 
-pm2 start ecosystem.config.cjs   # listens on 127.0.0.1:3002
+pm2 start ecosystem.config.cjs   # listens on localhost:3002
 pm2 save
 
-curl -s http://127.0.0.1:3002/api/site-identity/ | head
+curl -s http://localhost:3002/api/site-identity/ | head
 # must include "Jogi Invisible Grills"
 
 sudo cp deploy/nginx-jogiinvisiblegrills.conf /etc/nginx/sites-available/jogiinvisiblegrills.in
-# confirm proxy_pass http://127.0.0.1:3002;
+sudo rm -f /etc/nginx/sites-enabled/jogiinvisiblegrills.conf
+sudo ln -sf /etc/nginx/sites-available/jogiinvisiblegrills.in /etc/nginx/sites-enabled/jogiinvisiblegrills.in
+# confirm proxy_pass http://localhost:3002;
 sudo nginx -t && sudo systemctl reload nginx
 
 curl -s https://www.jogiinvisiblegrills.in/api/site-identity/
@@ -333,6 +336,15 @@ Ensure no other nginx `server` block uses `default_server` on 443 with the wrong
 ## 8. nginx `-t` warnings (shared VPS)
 
 If reload shows **`protocol options redefined for 0.0.0.0:443`** for `deva-safety-nets`, `hiranyaenterprises.in`, etc.: multiple site configs each use `listen 443 ssl http2`. Nginx picks one set of options; **syntax is still OK** and the site can work. To reduce noise, use the same `listen` pattern everywhere (e.g. `listen 443 ssl;` without `http2` on each vhost) or ignore the warn if `nginx: configuration file ... test is successful`.
+
+If you see **`conflicting server name "www.jogiinvisiblegrills.in" ... ignored`**: two enabled configs define the same `server_name` — usually **`jogiinvisiblegrills.conf`** and **`jogiinvisiblegrills.in`**. Nginx keeps the **first** (often the broken old `.conf`) and ignores the fixed one → **502 forever**.
+
+```bash
+ls -la /etc/nginx/sites-enabled/ | grep -i jogi
+sudo rm -f /etc/nginx/sites-enabled/jogiinvisiblegrills.conf
+sudo ln -sf /etc/nginx/sites-available/jogiinvisiblegrills.in /etc/nginx/sites-enabled/jogiinvisiblegrills.in
+sudo nginx -t && sudo systemctl reload nginx
+```
 
 If you see **`conflicting server name "saidurgainvisiblegrills.in" ... ignored`**: two enabled configs define the same `server_name`. On this server that is usually **`saidurga`** and **`saidurgainvisiblegrills.in`** both enabled:
 
@@ -348,15 +360,15 @@ Confirm Jogi is wired correctly (independent of Deva on port 3000):
 ```bash
 grep -r "server_name.*jogiinvisiblegrills" /etc/nginx/sites-enabled/
 grep "proxy_pass" /etc/nginx/sites-available/jogiinvisiblegrills.in
-# proxy_pass http://127.0.0.1:3002;
+# proxy_pass http://localhost:3002;
 
 pm2 list
-pm2 logs jogi-invisible-grills --lines 30 --nostream
+pm2 logs jogiinvisiblegrills --lines 30 --nostream
 
-curl -sS http://127.0.0.1:3002/api/site-identity/
+curl -sS http://localhost:3002/api/site-identity/
 curl -sS https://www.jogiinvisiblegrills.in/api/site-identity/
 ```
 
-If localhost returns nothing or connection refused, the app is not listening on **3002** — run `pm2 start ecosystem.config.cjs` after `npm run build:standalone`. This project uses **`trailingSlash: true`**, so use **`/api/site-identity/`** (with trailing slash) in curl.
+If localhost returns nothing or connection refused, the app is not listening on **3002** — set `PORT=3002` in `/etc/ap-sites/sites.d/jogiinvisiblegrills.env` and reload PM2. This project uses **`trailingSlash: true`**, so use **`/api/site-identity/`** (with trailing slash) in curl.
 
 See also [DEPLOYMENT.md](./DEPLOYMENT.md), [SEARCH_CONSOLE_SETUP.md](./SEARCH_CONSOLE_SETUP.md), and [SERVER-DISK-CLEANUP.md](./deploy/SERVER-DISK-CLEANUP.md) (automatic cache cleanup for all `/var/www` sites).

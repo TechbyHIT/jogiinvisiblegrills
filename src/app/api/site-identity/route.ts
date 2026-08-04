@@ -11,6 +11,7 @@ export async function GET() {
       canonicalHost: CANONICAL_SITE_HOST,
       websiteUrl: BUSINESS_CONFIG.websiteUrl,
       deployMarker: "jogi-invisible-grills-next",
+      port: Number(process.env.PORT ?? 3002),
     },
     {
       headers: {
