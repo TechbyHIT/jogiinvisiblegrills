@@ -1,5 +1,41 @@
 # PM2 + nginx (no Docker) — jogiinvisiblegrills.in
 
+## Server paths
+
+This repo documents two VPS layouts:
+
+| Layout | Site path | PM2 config |
+|--------|-----------|------------|
+| Legacy | `/var/www/jogiinvisiblegrills.in` | `ecosystem.config.cjs` in repo |
+| **ap-sites multisite** | `/srv/sites/jogiinvisiblegrills/current` | `/etc/ap-sites/ecosystem.multisite.config.cjs` |
+
+If `cd /var/www/jogiinvisiblegrills.in` fails, you are on **ap-sites**. Use:
+
+```bash
+pm2 describe jogiinvisiblegrills | grep -E "exec cwd|script path|PORT"
+ls -la /srv/sites/jogiinvisiblegrills/current
+cat /etc/ap-sites/ecosystem.multisite.config.cjs | grep -A20 jogi
+```
+
+Deploy via your multisite tool from `~/ap-all-areas` (same as `hiranaya-enterprises`). **Do not** run `pm2 start ecosystem.config.cjs` from `ap-all-areas` — that starts the wrong app.
+
+After deploy, set Jogi **PORT=3002** in `/etc/ap-sites/ecosystem.multisite.config.cjs`, then:
+
+```bash
+pm2 reload /etc/ap-sites/ecosystem.multisite.config.cjs --only jogiinvisiblegrills
+curl -sS http://127.0.0.1:3002/api/site-identity/
+```
+
+Nginx `proxy_pass` must match that port. Copy vhost from the site release:
+
+```bash
+JOGI=$(readlink -f /srv/sites/jogiinvisiblegrills/current 2>/dev/null || echo /srv/sites/jogiinvisiblegrills/current)
+sudo cp "$JOGI/deploy/nginx-jogiinvisiblegrills.conf" /etc/nginx/sites-available/jogiinvisiblegrills.in
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+---
+
 ## Server requirements
 
 - Ubuntu 22.04+ (or similar)
