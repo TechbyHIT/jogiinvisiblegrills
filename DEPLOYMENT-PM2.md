@@ -75,7 +75,7 @@ pm2 start ecosystem.config.cjs
 pm2 save
 ```
 
-**502 Bad Gateway** from nginx means nothing is listening on **3004** (crashed app, failed build, or wrong PM2 `cwd`). PM2 must run **`server.js` from `.next/standalone/`** (see `ecosystem.config.cjs`).
+**502 Bad Gateway** from nginx means nothing is listening on **3002** (crashed app, failed build, or wrong PM2 `cwd`). PM2 must run **`server.js` from `.next/standalone/`** (see `ecosystem.config.cjs`).
 
 ```bash
 cd /var/www/jogiinvisiblegrills.in
@@ -88,8 +88,8 @@ pm2 delete jogi-invisible-grills 2>/dev/null || true
 pm2 start ecosystem.config.cjs
 pm2 logs jogi-invisible-grills --lines 40 --nostream
 
-ss -tlnp | grep 3004
-curl -sS http://127.0.0.1:3004/api/site-identity/
+ss -tlnp | grep 3002
+curl -sS http://127.0.0.1:3002/api/site-identity/
 ```
 
 If PM2 shows **errored** or **restart loop**, read logs for OOM or missing `server.js`. Increase `max_memory_restart` in `ecosystem.config.cjs` if the VPS has RAM headroom.
@@ -121,7 +121,7 @@ Canonical behavior:
 | `http://jogiinvisiblegrills.in/*` | → `https://www.jogiinvisiblegrills.in/*` |
 | `http://www.jogiinvisiblegrills.in/*` | → `https://www.jogiinvisiblegrills.in/*` |
 | `https://jogiinvisiblegrills.in/*` | → `https://www.jogiinvisiblegrills.in/*` |
-| `https://www.jogiinvisiblegrills.in/*` | proxied to PM2 on port **3004** |
+| `https://www.jogiinvisiblegrills.in/*` | proxied to PM2 on port **3002** |
 
 **Symptom:** `curl: (60) SSL: no alternative certificate subject name matches target host name 'www.jogiinvisiblegrills.in'` — nginx is presenting a **different site’s certificate** (common on shared VPS) or a cert that only covers the apex name.
 
@@ -157,7 +157,7 @@ echo | openssl s_client -connect www.jogiinvisiblegrills.in:443 -servername www.
 sudo nginx -T 2>/dev/null | grep -B2 -A25 'server_name www.jogiinvisiblegrills.in'
 ```
 
-The openssl output must list `DNS:www.jogiinvisiblegrills.in`. The `nginx -T` block must show `proxy_pass http://127.0.0.1:3004` and cert paths under `live/jogiinvisiblegrills.in/`.
+The openssl output must list `DNS:www.jogiinvisiblegrills.in`. The `nginx -T` block must show `proxy_pass http://127.0.0.1:3002` and cert paths under `live/jogiinvisiblegrills.in/`.
 
 If openssl shows **`CN = devasafetynets.com`** (or another domain) for `www.jogiinvisiblegrills.in`, nginx is using **Deva’s default HTTPS vhost** because Jogi’s **443 `server_name` block is missing, misconfigured, or not enabled** — even when Let’s Encrypt already has a Jogi certificate (`certbot` may say “not yet due for renewal”).
 
@@ -175,7 +175,7 @@ echo | openssl s_client -connect www.jogiinvisiblegrills.in:443 -servername www.
   | openssl x509 -noout -subject -ext subjectAltName
 ```
 
-`nginx -T` must show `ssl_certificate .../live/jogiinvisiblegrills.in/` and `proxy_pass http://127.0.0.1:3004`. Only if `certbot certificates` lists **apex only** (no `www`), force an expand:
+`nginx -T` must show `ssl_certificate .../live/jogiinvisiblegrills.in/` and `proxy_pass http://127.0.0.1:3002`. Only if `certbot certificates` lists **apex only** (no `www`), force an expand:
 
 ```bash
 sudo certbot certonly --nginx --expand --force-renewal \
@@ -236,13 +236,13 @@ npm run inventory:summary
 - [ ] Site identity check (must show **Jogi**, not another brand):
 
 ```bash
-curl -s http://127.0.0.1:3004/api/site-identity/
+curl -s http://127.0.0.1:3002/api/site-identity/
 # {"brand":"Jogi Invisible Grills","deployMarker":"jogi-invisible-grills-next",...}
 
 curl -s https://www.jogiinvisiblegrills.in/api/site-identity/
 ```
 
-If the public URL returns another company (e.g. Deva Safety Nets) or `deployMarker` is missing, nginx is proxying to the **wrong port** or the wrong PM2 app — fix nginx `proxy_pass` to **3004** and ensure this repo’s PM2 process is running.
+If the public URL returns another company (e.g. Deva Safety Nets) or `deployMarker` is missing, nginx is proxying to the **wrong port** or the wrong PM2 app — fix nginx `proxy_pass` to **3002** and ensure this repo’s PM2 process is running.
 
 ## 7. Wrong site on this domain (troubleshooting)
 
@@ -260,14 +260,14 @@ npm run build:standalone
 # Stop old PM2 name if present
 pm2 delete jogendhra-invisible-grills 2>/dev/null || true
 
-pm2 start ecosystem.config.cjs   # listens on 127.0.0.1:3004
+pm2 start ecosystem.config.cjs   # listens on 127.0.0.1:3002
 pm2 save
 
-curl -s http://127.0.0.1:3004/api/site-identity/ | head
+curl -s http://127.0.0.1:3002/api/site-identity/ | head
 # must include "Jogi Invisible Grills"
 
 sudo cp deploy/nginx-jogiinvisiblegrills.conf /etc/nginx/sites-available/jogiinvisiblegrills.in
-# confirm proxy_pass http://127.0.0.1:3004;
+# confirm proxy_pass http://127.0.0.1:3002;
 sudo nginx -t && sudo systemctl reload nginx
 
 curl -s https://www.jogiinvisiblegrills.in/api/site-identity/
@@ -293,15 +293,15 @@ Confirm Jogi is wired correctly (independent of Deva on port 3000):
 ```bash
 grep -r "server_name.*jogiinvisiblegrills" /etc/nginx/sites-enabled/
 grep "proxy_pass" /etc/nginx/sites-available/jogiinvisiblegrills.in
-# proxy_pass http://127.0.0.1:3004;
+# proxy_pass http://127.0.0.1:3002;
 
 pm2 list
 pm2 logs jogi-invisible-grills --lines 30 --nostream
 
-curl -sS http://127.0.0.1:3004/api/site-identity/
+curl -sS http://127.0.0.1:3002/api/site-identity/
 curl -sS https://www.jogiinvisiblegrills.in/api/site-identity/
 ```
 
-If localhost returns nothing or connection refused, the app is not listening on **3004** — run `pm2 start ecosystem.config.cjs` after `npm run build:standalone`. This project uses **`trailingSlash: true`**, so use **`/api/site-identity/`** (with trailing slash) in curl.
+If localhost returns nothing or connection refused, the app is not listening on **3002** — run `pm2 start ecosystem.config.cjs` after `npm run build:standalone`. This project uses **`trailingSlash: true`**, so use **`/api/site-identity/`** (with trailing slash) in curl.
 
 See also [DEPLOYMENT.md](./DEPLOYMENT.md), [SEARCH_CONSOLE_SETUP.md](./SEARCH_CONSOLE_SETUP.md), and [SERVER-DISK-CLEANUP.md](./deploy/SERVER-DISK-CLEANUP.md) (automatic cache cleanup for all `/var/www` sites).

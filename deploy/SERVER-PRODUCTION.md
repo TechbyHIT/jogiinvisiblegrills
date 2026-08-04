@@ -47,7 +47,7 @@ include /etc/nginx/snippets/nextjs-proxy.conf;
 ## Per-site deploy (template)
 
 ```bash
-sudo bash deploy/server/site-deploy.sh /var/www/jogiinvisiblegrills.in jogi-invisible-grills 3004
+sudo bash deploy/server/site-deploy.sh /var/www/jogiinvisiblegrills.in jogi-invisible-grills 3002
 ```
 
 What `build:standalone` does:
@@ -73,7 +73,7 @@ exec_mode: "fork",
 Assign ports **3000–3049** (or 3000–3099). Document in `/root/site-ports.csv`:
 
 ```text
-jogiinvisiblegrills.in,3004,jogi-invisible-grills
+jogiinvisiblegrills.in,3002,jogi-invisible-grills
 devasafetynets.com,3000,deva-safety-nets
 ```
 

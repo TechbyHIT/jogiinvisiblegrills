@@ -21,7 +21,7 @@ module.exports = {
         NODE_ENV: "production",
         NODE_OPTIONS: "--max-old-space-size=512",
         /** Dedicated port — do not share 3000 with other sites on the same VPS (e.g. Deva Safety Nets). */
-        PORT: 3004,
+        PORT: 3002,
         HOSTNAME: "127.0.0.1",
       },
       /** Runtime reads `.env.local` if present (copied by prepare-standalone.cjs). */
