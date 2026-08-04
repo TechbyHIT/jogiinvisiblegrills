@@ -19,6 +19,25 @@ cat /etc/ap-sites/ecosystem.multisite.config.cjs | grep -A20 jogi
 
 Deploy via your multisite tool from `~/ap-all-areas` (same as `hiranaya-enterprises`). **Do not** run `pm2 start ecosystem.config.cjs` from `ap-all-areas` — that starts the wrong app.
 
+**`/srv/sites/jogiinvisiblegrills/current` is NOT a git repo.** It is a symlink to a built release (only `server.js`, `public/`, `.next/static`, etc.). `git pull` there will always fail — that is normal.
+
+Deploy updated code from GitHub:
+
+```bash
+cd ~/ap-all-areas
+
+# find the Jogi deploy command (same pattern as hiranaya-enterprises)
+grep -ri jogi . 2>/dev/null | head -20
+ls scripts bin deploy 2>/dev/null
+
+# typical ap-sites pattern (adjust to your script name):
+./scripts/deploy-site.sh jogiinvisiblegrills
+# or:
+./deploy hiranaya-enterprises   # example that worked for Hiranya
+```
+
+GitHub source: `https://github.com/TechbyHIT/jogiinvisiblegrills.git` — the deploy script clones/builds from there into `/srv/sites/jogiinvisiblegrills/releases/TIMESTAMP`, then switches `current`.
+
 After deploy, set Jogi **PORT=3002** in `/etc/ap-sites/ecosystem.multisite.config.cjs`, then:
 
 ```bash
