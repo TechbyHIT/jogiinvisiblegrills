@@ -53,6 +53,13 @@ if [[ -d "$WEB_ROOT" ]]; then
       done
     fi
 
+    # Drop full node_modules when standalone PM2 runtime exists (~300–800MB/site)
+    if [[ "${PRUNE_NODE_MODULES:-0}" == "1" || "${AGGRESSIVE:-0}" == "1" ]] \
+      && [[ -f "$site/.next/standalone/server.js" ]] \
+      && [[ -d "$site/node_modules" ]]; then
+      run_clean "rm -rf '$site/node_modules'"
+    fi
+
     log "  scanned: $name"
   done < <(find "$WEB_ROOT" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
 fi

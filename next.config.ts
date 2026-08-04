@@ -16,7 +16,11 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   output: "standalone",
   trailingSlash: true,
+  poweredByHeader: false,
+  compress: true,
+  productionBrowserSourceMaps: false,
   experimental: {
+    /** Lower peak RAM during `next build` on shared VPS (50+ sites). */
     staticGenerationMaxConcurrency: 2,
   },
   turbopack: {

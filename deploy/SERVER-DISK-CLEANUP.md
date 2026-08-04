@@ -1,5 +1,7 @@
 # Automatic disk cleanup (30+ sites on one VPS)
 
+> Full playbook: [SERVER-PRODUCTION.md](./SERVER-PRODUCTION.md)
+
 One cron job cleans **all** project folders under `/var/www` — safe caches only (not production standalone, not `.env`, not `public/` uploads).
 
 ## What gets cleaned (every site)

@@ -11,9 +11,15 @@ module.exports = {
       script: "server.js",
       instances: 1,
       exec_mode: "fork",
-      max_memory_restart: "1024M",
+      instances: 1,
+      max_memory_restart: "768M",
+      max_restarts: 15,
+      min_uptime: "10s",
+      merge_logs: true,
+      log_date_format: "YYYY-MM-DD HH:mm:ss",
       env: {
         NODE_ENV: "production",
+        NODE_OPTIONS: "--max-old-space-size=512",
         /** Dedicated port — do not share 3000 with other sites on the same VPS (e.g. Deva Safety Nets). */
         PORT: 3004,
         HOSTNAME: "127.0.0.1",
