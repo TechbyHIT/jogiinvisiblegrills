@@ -1,5 +1,9 @@
 # Automatic disk cleanup (30+ sites on one VPS)
 
+> **Threshold-based guard (recommended):** [SERVER-DISK-GUARD.md](./SERVER-DISK-GUARD.md) — checks every 5 minutes, cleans only when used disk crosses 160 GB, and never stops a site. Use that on the `ap-sites` (`/srv/sites`) server.
+>
+> The cron job below is the older fixed-schedule cleaner for the legacy `/var/www` layout. Both can run together.
+
 > Full playbook: [SERVER-PRODUCTION.md](./SERVER-PRODUCTION.md)
 
 One cron job cleans **all** project folders under `/var/www` — safe caches only (not production standalone, not `.env`, not `public/` uploads).
