@@ -76,21 +76,29 @@ collect_protected() {
   done
 }
 
+# mode=strict (default): also refuse anything INSIDE a live release.
+# mode=cache: allow deletion inside a live release — caller guarantees the path
+#             is regenerated at runtime (.next/cache, node_modules/.cache, .turbo).
 is_protected() {
-  local path
+  local path mode="${2:-strict}"
   path=$(readlink -f "$1" 2>/dev/null || echo "$1")
   while IFS= read -r p; do
     [[ -z "$p" ]] && continue
-    # protected if it IS the path, or the protected path lives inside it
+    # path IS the live release, or CONTAINS it (e.g. the releases/ dir itself)
     [[ "$path" == "$p" || "$p" == "$path"/* ]] && return 0
+    # path is INSIDE the live release, e.g. .../releases/<ts>/node_modules.
+    # Deleting that is exactly what produces "Cannot find module 'next'" + 502.
+    if [[ "$mode" == "strict" && "$path" == "$p"/* ]]; then
+      return 0
+    fi
   done <<<"$PROTECTED"
   return 1
 }
 
 remove() {
-  local target="$1" label="${2:-}"
+  local target="$1" label="${2:-}" mode="${3:-strict}"
   [[ -e "$target" ]] || return 0
-  if is_protected "$target"; then
+  if is_protected "$target" "$mode"; then
     log "  SKIP (in use): $target"
     return 0
   fi
@@ -126,16 +134,16 @@ level1() {
   for root in "$SITES_ROOT" "$WEB_ROOT"; do
     [[ -d "$root" ]] || continue
     while IFS= read -r -d '' d; do
-      remove "$d" "(build cache)"
+      remove "$d" "(build cache)" cache
     done < <(find "$root" -mindepth 2 -maxdepth 5 -type d \
       \( -name ".turbo" -o -name ".eslintcache" \) -print0 2>/dev/null)
 
     while IFS= read -r -d '' d; do
-      remove "$d" "(next cache)"
+      remove "$d" "(next cache)" cache
     done < <(find "$root" -mindepth 2 -maxdepth 5 -type d -path '*/.next/cache' -print0 2>/dev/null)
 
     while IFS= read -r -d '' d; do
-      remove "$d" "(node cache)"
+      remove "$d" "(node cache)" cache
     done < <(find "$root" -mindepth 2 -maxdepth 5 -type d -path '*/node_modules/.cache' -print0 2>/dev/null)
   done
 

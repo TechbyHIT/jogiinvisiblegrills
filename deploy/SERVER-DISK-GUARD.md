@@ -4,6 +4,23 @@ Checks disk every **5 minutes**. Does nothing while usage is below the threshold
 
 No site is ever stopped, restarted or reloaded.
 
+## Never deletes a live release's runtime
+
+`is_protected()` refuses anything that **is**, **contains**, or **lives inside** a
+release PM2 is currently serving. The "inside" case is the important one: deleting
+`releases/<ts>/node_modules` on a live site causes `Cannot find module 'next'`,
+a PM2 crash-loop and a **502** — with the release directory still looking healthy.
+
+Known-regenerable caches are the documented exception and are passed `cache` mode
+so they can still be cleared inside a live release: `.next/cache`,
+`node_modules/.cache`, `.turbo`, `.eslintcache`.
+
+Verify the logic any time you touch it:
+
+```bash
+bash scripts/test-disk-guard-protection.sh
+```
+
 ## Install (once, as root)
 
 ```bash
