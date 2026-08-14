@@ -11,6 +11,18 @@ This repo documents two VPS layouts:
 
 **ap-sites release layout:** PM2 uses flat `current/server.js`. Fleet config sets **`HOSTNAME=localhost`** (listens on `[::1]`). Nginx **`proxy_pass` must be `http://localhost:3002`** — **not** `127.0.0.1` (that causes 502).
 
+### Deploy (use this — never hand-run rsync)
+
+```bash
+cd /tmp && rm -rf jogi-deploy
+git clone --depth 1 https://github.com/TechbyHIT/jogiinvisiblegrills.git jogi-deploy
+sudo nohup bash jogi-deploy/deploy/server/ap-sites-deploy.sh \
+  > /var/log/ap-deploy-jogiinvisiblegrills.log 2>&1 &
+tail -f /var/log/ap-deploy-jogiinvisiblegrills.log
+```
+
+`nohup` matters: an SSH drop mid-`rsync` previously produced a release missing `node_modules`, which crash-looped PM2 with `Cannot find module 'next'` and served **502**. The script now verifies `server.js`, `node_modules/next` and `.next/static`, smoke-tests the build on a scratch port, and only then switches `current` — rolling back automatically if the health check fails.
+
 ### Port + registry (do not hand-edit ecosystem.multisite.config.cjs)
 
 ```bash
