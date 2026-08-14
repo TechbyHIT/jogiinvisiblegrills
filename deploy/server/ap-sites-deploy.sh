@@ -48,13 +48,16 @@ elif [[ -f .env.example ]]; then
   npm run env:setup >/dev/null 2>&1 || cp .env.example .env.local
 fi
 
-step "[$SLUG] npm ci"
-export NODE_ENV=production
+step "[$SLUG] npm ci (with dev deps)"
 export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=4096}"
-npm ci --no-audit --no-fund || fail "npm ci failed"
+# NODE_ENV must NOT be production here: @tailwindcss/postcss and tsx are
+# devDependencies that next build needs. They stay out of the standalone
+# bundle regardless, since Next only traces what the server actually requires.
+NODE_ENV=development npm ci --include=dev --no-audit --no-fund || fail "npm ci failed"
+[[ -d node_modules/@tailwindcss/postcss ]] || fail "npm ci did not install dev deps"
 
 step "[$SLUG] build standalone"
-npm run build:standalone || fail "build failed"
+NODE_ENV=production npm run build:standalone || fail "build failed"
 
 # --- Verify the BUILD before it can ever become live ------------------------
 step "[$SLUG] verify build"
@@ -88,7 +91,7 @@ SMOKE_PID=$!
 smoke_ok=0
 for _ in $(seq 1 20); do
   sleep 1
-  if curl -sf "http://localhost:${SMOKE_PORT}/api/health" >/dev/null 2>&1 ||
+  if curl -sf "http://localhost:${SMOKE_PORT}/api/site-identity/" >/dev/null 2>&1 ||
     curl -sf "http://localhost:${SMOKE_PORT}/" >/dev/null 2>&1; then
     smoke_ok=1
     break
